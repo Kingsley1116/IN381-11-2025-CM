@@ -1,0 +1,68 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    margin: 20px 50px;
+}
+
+.row {
+    display: flex;
+}
+
+.col {
+    margin: 0px 15px;
+    /* display: flex;
+    flex-direction: column; */
+}
+
+.title {
+    font-weight: bold;
+    text-decoration: none;
+    color: inherit;
+}
+
+.big-text {
+    font-size: 36px;
+}
+
+.medium-text {
+    font-size: 24px;
+}
+
+.title:hover {
+    color: darkblue;
+}
+
+.content {
+    color: #888;
+    margin: 20px 0;
+}
+
+.time {
+    color: #bbb;
+}
+
+.line {
+    width: auto;
+    background-color: #bbb;
+    height: 1px;
+    margin: 20px 0;
+}
+
+img {
+    width: 100%;
+}
+
+.category {
+    color: dodgerblue;
+    font-weight: 900;
+    text-decoration: none;
+    display: block;
+}
+
+.comments {
+    color: dodgerblue;
+}
