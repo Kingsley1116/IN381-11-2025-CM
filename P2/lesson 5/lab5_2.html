@@ -1,0 +1,138 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+</head>
+
+<body>
+	<!-- 實作練習HTML -->
+	<form id="registration-form" class="form-practice">
+		<div class="form-group">
+			<label for="username">使用者名稱:</label>
+			<input type="text" id="username" name="username" required placeholder="輸入使用者名稱">
+			<div class="hint">至少3個字元</div>
+		</div>
+
+		<div class="form-group">
+			<label for="email">電子郵件:</label>
+			<input type="email" id="email" name="email" required placeholder="example@domain.com">
+		</div>
+
+		<div class="form-group">
+			<label for="password">密碼:</label>
+			<input type="password" id="password" name="password" required placeholder="至少8個字元">
+			<div class="password-strength" style="display: flex;"></div>
+		</div>
+
+		<div class="form-group">
+			<label>訂閱選項:</label>
+			<div>
+				<input type="checkbox" id="newsletter" name="newsletter">
+				<label for="newsletter">訂閱電子報</label>
+			</div>
+			<div>
+				<input type="checkbox" id="notifications" name="notifications">
+				<label for="notifications">接收通知</label>
+			</div>
+		</div>
+
+		<div class="form-group">
+			<label for="theme">主題顏色:</label>
+			<input type="color" id="theme" name="theme" value="#3498db">
+		</div>
+
+		<button type="submit">註冊</button>
+		<button type="reset">重置</button>
+	</form>
+	<script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const form = document.getElementById("registration-form");
+            const usernameInput = document.getElementById("username");
+            const passwordInput = document.getElementById("password");
+            const themeInput = document.getElementById("theme");
+            const passwordStrengthContainer = document.querySelector(".password-strength");
+
+            for (let i = 0; i < 5; i++) {
+                const block = document.createElement("div");
+                block.style.width = "20px";
+                block.style.height = "8px";
+                block.style.backgroundColor = "#eee";
+                block.style.borderRadius = "2px";
+                block.style.marginRight = "5px";
+                block.style.transition = "background-color 0.2s ease";
+                passwordStrengthContainer.appendChild(block);
+            }
+            const strengthBlocks = passwordStrengthContainer.querySelectorAll("div");
+
+            // 1. 使用者名稱必須不包含空格
+            usernameInput.addEventListener("input", function() {
+                const hasSpace = /\s/.test(this.value);
+                if (hasSpace) {
+                    this.setCustomValidity("使用者名稱不能包含空格！");
+                } else {
+                    this.setCustomValidity(this.value.length < 3 ? "至少 3 個字元" : "");
+                }
+                this.reportValidity();
+            });
+
+            // 2. 密碼強度檢查：至少16位，必須包含至少一個小寫字符、大寫字符、符號和數字
+            function checkPasswordRules(password) {
+                return [
+                    password.length >= 16,
+                    /[a-z]/.test(password),
+                    /[A-Z]/.test(password),
+                    /\d/.test(password),
+                    /[^a-zA-Z0-9]/.test(password)
+                ];
+            }
+
+            // 3. 在密碼下方顯示 5 個方塊，隨著密碼強度符合上述條件顯示綠色強度等級
+            passwordInput.addEventListener("input", function() {
+                const password = this.value;
+                const rules = checkPasswordRules(password);
+                const allRulesPass = rules.every(rule => rule);
+
+                strengthBlocks.forEach(block => {
+                    block.style.backgroundColor = "#eee";
+                });
+
+                // 4. 隨著用戶填寫的密碼強度增加，每滿足一個條件用橙色高亮一個方塊，完全滿足時，顯示綠色
+                rules.forEach((isPass, index) => {
+                    if (isPass) {
+                        let blockColor = allRulesPass ? "#27ae60" : "#f39c12";
+                        strengthBlocks[index].style.backgroundColor = blockColor;
+                    }
+                });
+
+                if (password.length > 0 && !allRulesPass) {
+                    this.setCustomValidity('密碼需至少16位，包含大小寫、數字、符號！');
+                } else {
+                    this.setCustomValidity('');
+                }
+                this.reportValidity();
+            });
+
+            // 5. 根據主題顏色改變表單背景
+            themeInput.addEventListener("input", function() {
+                const color = this.value;
+                form.style.backgroundColor = color;
+            })
+
+            // 6. 實作表單重置功能
+            form.addEventListener("reset", function() {
+                strengthBlocks.forEach(block => {
+                    block.style.backgroundColor = "#eee";
+                });
+                form.style.backgroundColor = '';
+                form.style.color = '';
+                usernameInput.setCustomValidity('');
+                passwordInput.setCustomValidity('');
+            });
+        })
+	</script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+</head>
+
+<body>
+	<div class="dropzone" style="background-color: lightgreen;min-height: 100px;">
+		<div id="item-1" draggable="true">
+			item 1
+		</div>
+		<div id="item-2" draggable="true">
+			item 2
+		</div>
+		<div id="item-3" draggable="true">
+			item 3
+		</div>
+		<div id="item-4" draggable="true">
+			item 4
+		</div>
+	</div>
+
+	<div class="dropzone" style="background-color: lightblue;min-height: 100px;">
+	</div>
+
+	<script>
+		// 練習題目
+		// 1. 讓所有 draggable 元素可以從一個 dropzone 拖拽到另一個 dropzone 中
+        document.querySelectorAll("[draggable]").forEach((draggable) => {
+            draggable.addEventListener("dragstart", function(e) {
+                e.dataTransfer.setData("text/plain", draggable.id);
+                draggable.classList.add("dragging");
+            });
+
+            draggable.addEventListener("dragend", function(e) {
+                draggable.classList.remove("dragging");
+            });
+        });
+
+        document.querySelectorAll(".dropzone").forEach((dropzone) => {
+            dropzone.addEventListener("dragenter", function(e) {
+                e.preventDefault();
+                dropzone.classList.add("drag-over");
+            });
+
+            dropzone.addEventListener("dragover", function(e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
+            });
+
+            dropzone.addEventListener("dragleave", function(e) {
+                dropzone.classList.remove("drag-over");
+            });
+
+            dropzone.addEventListener("drop", function(e) {
+                e.preventDefault();
+                dropzone.classList.remove("drag-over");
+            
+                const id = e.dataTransfer.getData("text/plain");
+                const draggedElement = document.getElementById(id);
+
+                if (draggedElement) {
+                    dropzone.appendChild(draggedElement);
+                    console.log(`元素 ${id} 已移動到新的放置區域`);
+                }
+            });
+        })
+	</script>
+</body>
+
+</html>

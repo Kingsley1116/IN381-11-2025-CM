@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+    <style>
+		.draggable-wrapper {
+			position: relative;
+			width: 800px;
+			height: 500px;
+			margin-top: 20px;
+			background-color: #f8f9fa;
+		}
+
+		.draggable-wrapper div {
+			position: absolute;
+			width: 80px;
+			height: 80px;
+			background-color: #3498db;
+			color: white;
+			text-align: center;
+			line-height: 80px;
+			border-radius: 8px;
+			cursor: move;
+			margin: 0;
+			top: 90px;
+			left: 20px;
+		}
+
+		button {
+			padding: 8px 16px;
+			font-size: 14px;
+			cursor: pointer;
+			background-color: #27ae60;
+			color: white;
+			border: none;
+			border-radius: 4px;
+		}
+	</style>
+</head>
+
+<body>
+	<div>
+		<button>Add Box</button>
+	</div>
+	<div class="draggable-wrapper">
+		<div>0</div>
+	</div>
+
+	<script>
+        let isDragging = null;
+
+        const addBtn = document.querySelector("button");
+        const wrapper = document.querySelector(".draggable-wrapper");
+
+        // 1. 按下 add box 在 draggable-wrapper 里新增一個 div
+        addBtn.addEventListener("click", function() {
+            const boxCount = wrapper.querySelectorAll("div").length;
+            const newBox = document.createElement("div");
+            newBox.textContent = boxCount;
+            wrapper.appendChild(newBox);
+        })
+
+		// 2. draggable-wrapper 里的 div 可以拖拽移動
+        wrapper.addEventListener("mousedown", function(e) {
+            if (e.target.parentElement === wrapper && e.target.tagName === "DIV") {
+                isDragging = e.target;
+            }
+        });
+
+        document.addEventListener("mousemove", function(e) {
+            if (!isDragging) return;
+
+            const elem = isDragging;
+
+            elem.style.left = elem.offsetLeft + e.movementX + "px";
+            elem.style.top = elem.offsetTop + e.movementY + "px";
+        });
+
+        document.addEventListener("mouseup", function(e) {
+            isDragging = null;
+        })
+
+	</script>
+</body>
+</html>

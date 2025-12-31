@@ -1,0 +1,52 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+</head>
+
+<body>
+	<!-- 實作練習HTML -->
+	<div class="practice-container" id="dom-practice">
+		<header>
+			<h1>DOM 導航練習</h1>
+			<nav>
+				<ul class="menu">
+					<li class="item"><a href="#">首頁</a></li>
+					<li class="item active"><a href="#">產品</a></li>
+					<li class="item"><a href="#">關於我們</a></li>
+				</ul>
+			</nav>
+		</header>
+		<main>
+			<section class="content" data-category="news">
+				<article class="post">
+					<h2>文章標題</h2>
+					<p>內容...</p>
+					<div class="meta">標籤: <span class="tag">JavaScript</span></div>
+				</article>
+			</section>
+		</main>
+	</div>
+
+	<script>
+		document.addEventListener("DOMContentLoaded", function() {
+			// 1. 找到所有帶有 'item' 類別的元素
+			console.log(document.querySelector(".item"));
+
+			// 2. 從 active 項目找到其父元素 ul
+			console.log(document.querySelector('.item.active').parentElement);
+
+			// 3. 找到第一個 .tag 元素的父文章
+			console.log(document.querySelector(".tag").closest("article"));
+
+			// 4. 找到 section 元素的所有直接子元素
+			console.log(document.querySelector("section").children);
+		})
+	</script>
+</body>
+
+</html>
