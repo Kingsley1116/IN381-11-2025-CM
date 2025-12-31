@@ -1,0 +1,187 @@
+<!-- 綜合練習HTML -->
+<div class="canvas-container">
+	<canvas id="drawing-canvas" width="800" height="500"></canvas>
+	<div class="tools">
+		<button data-tool="pen">筆刷</button>
+		<button data-tool="eraser">橡皮擦</button>
+		<input type="color" id="color-picker" value="#000000">
+		<input type="range" id="brush-size" min="1" max="50" value="5">
+	</div>
+	<div class="stats">
+		座標: <span id="coordinates">0, 0</span> |
+		觸點: <span id="touch-count">0</span>
+	</div>
+</div>
+
+<script>
+	const canvas = document.getElementById('drawing-canvas');
+	const ctx = canvas.getContext('2d');
+	const colorPicker = document.getElementById('color-picker');
+	const brushSize = document.getElementById('brush-size');
+	const coordinatesDisplay = document.getElementById('coordinates');
+	const touchCountDisplay = document.getElementById('touch-count');
+	const toolButtons = document.querySelectorAll('[data-tool]');
+
+	let isDrawing = false;
+	let currentTool = 'pen';
+	let touchPoints = new Map();
+	const canvasRect = canvas.getBoundingClientRect();
+
+	// 添加工具選擇（筆刷、橡皮擦）
+	toolButtons.forEach(btn => {
+		btn.addEventListener('click', () => {
+			toolButtons.forEach(b => b.classList.remove('active'));
+			btn.classList.add('active');
+			currentTool = btn.dataset.tool;
+		});
+	});
+	document.querySelector('[data-tool="pen"]').classList.add('active');
+
+	// 座標轉換：螢幕座標 → canvas相對座標
+	function getCanvasPos(clientX, clientY) {
+		const rect = canvas.getBoundingClientRect();
+		return {
+			x: clientX - rect.left,
+			y: clientY - rect.top
+		};
+	}
+
+	function drawLine(fromX, fromY, toX, toY, color, size, isEraser = false) {
+		ctx.beginPath();
+		ctx.strokeStyle = isEraser ? '#ffffff' : color;
+		ctx.lineWidth = size;
+		ctx.lineCap = 'round';
+		ctx.lineJoin = 'round';
+		ctx.moveTo(fromX, fromY);
+		ctx.lineTo(toX, toY);
+		ctx.stroke();
+		ctx.closePath();
+	}
+
+	canvas.addEventListener('mousedown', (e) => {
+		isDrawing = true;
+		const pos = getCanvasPos(e.clientX, e.clientY);
+		ctx.beginPath();
+		ctx.arc(pos.x, pos.y, brushSize.value / 2, 0, Math.PI * 2);
+		ctx.fillStyle = currentTool === 'eraser' ? '#ffffff' : colorPicker.value;
+		ctx.fill();
+	});
+
+	canvas.addEventListener('mousemove', (e) => {
+		const pos = getCanvasPos(e.clientX, e.clientY);
+		coordinatesDisplay.textContent = `${Math.round(pos.x)}, ${Math.round(pos.y)}`;
+
+		if (!isDrawing) return;
+		const newPos = getCanvasPos(e.clientX, e.clientY);
+		drawLine(
+			pos.x, pos.y,
+			newPos.x, newPos.y,
+			colorPicker.value,
+			brushSize.value,
+			currentTool === 'eraser'
+		);
+	});
+
+	['mouseup', 'mouseout'].forEach(event => {
+		canvas.addEventListener(event, () => {
+			isDrawing = false;
+		});
+	});
+
+	canvas.addEventListener('touchstart', (e) => {
+		e.preventDefault();
+		const touches = e.touches;
+		touchCountDisplay.textContent = touches.length;
+
+		const colors = ['#000000', '#ff0000', '#00ff00', '#0000ff'];
+		for (let i = 0; i < touches.length; i++) {
+			const touch = touches[i];
+			const pos = getCanvasPos(touch.clientX, touch.clientY);
+			touchPoints.set(touch.identifier, {
+				x: pos.x,
+				y: pos.y,
+				color: colors[touch.identifier % colors.length]
+			});
+
+			ctx.beginPath();
+			ctx.arc(pos.x, pos.y, brushSize.value / 2, 0, Math.PI * 2);
+			ctx.fillStyle = currentTool === 'eraser' ? '#ffffff' : colors[touch.identifier % colors.length];
+			ctx.fill();
+		}
+	});
+
+	canvas.addEventListener('touchmove', (e) => {
+		e.preventDefault();
+		const touches = e.touches;
+		touchCountDisplay.textContent = touches.length;
+
+		for (let i = 0; i < touches.length; i++) {
+			const touch = touches[i];
+			const pos = getCanvasPos(touch.clientX, touch.clientY);
+			const prevPos = touchPoints.get(touch.identifier);
+
+			if (prevPos) {
+				drawLine(
+					prevPos.x, prevPos.y,
+					pos.x, pos.y,
+					prevPos.color,
+					brushSize.value,
+					currentTool === 'eraser'
+				);
+
+				if (i === 0) {
+					coordinatesDisplay.textContent = `${Math.round(pos.x)}, ${Math.round(pos.y)}`;
+				}
+
+				touchPoints.set(touch.identifier, {
+					...prevPos,
+					x: pos.x,
+					y: pos.y
+				});
+			}
+		}
+	});
+
+	['touchend', 'touchcancel'].forEach(event => {
+		canvas.addEventListener(event, (e) => {
+			e.preventDefault();
+			const changedTouches = e.changedTouches;
+			for (let i = 0; i < changedTouches.length; i++) {
+				touchPoints.delete(changedTouches[i].identifier);
+			}
+			touchCountDisplay.textContent = e.touches.length;
+			if (e.touches.length === 0) {
+				coordinatesDisplay.textContent = '0, 0';
+			}
+		});
+	});
+
+	['dragenter', 'dragover'].forEach(event => {
+		canvas.addEventListener(event, (e) => {
+			e.preventDefault();
+			e.dataTransfer.dropEffect = 'copy';
+		});
+	});
+
+	canvas.addEventListener('drop', (e) => {
+		e.preventDefault();
+		const files = e.dataTransfer.files;
+		if (files.length === 0 || !files[0].type.startsWith('image/')) {
+			alert('請拖放圖片檔（JPG/PNG等）！');
+			return;
+		}
+
+		const reader = new FileReader();
+		reader.onload = (event) => {
+			const img = new Image();
+			img.onload = () => {
+				const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+				const drawX = (canvas.width - img.width * scale) / 2;
+				const drawY = (canvas.height - img.height * scale) / 2;
+				ctx.drawImage(img, drawX, drawY, img.width * scale, img.height * scale);
+			};
+			img.src = event.target.result;
+		};
+		reader.readAsDataURL(files[0]);
+	});
+</script>
