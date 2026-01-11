@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+
+        .toolbar {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            background-color: #2196F3;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #1976D2;
+        }
+
+        .color-picker {
+            width: 36px;
+            height: 36px;
+            border: none;
+            cursor: pointer;
+            background-color: transparent;
+        }
+
+        canvas {
+            border: 1px solid #cccccc;
+            border-radius: 8px;
+            background-color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <button class="btn" id="addRect">新增矩形</button>
+        <button class="btn" id="addCircle">新增圓形</button>
+        <label for="color">修改顏色：</label>
+        <input type="color" id="color" class="color-picker" value="#ff4444">
+        <button class="btn" id="exportPng">導出PNG</button>
+    </div>
+
+    <canvas id="canvas" width="1200" height="800"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const addRectBtn = document.getElementById('addRect');
+        const addCircleBtn = document.getElementById('addCircle');
+        const colorPicker = document.getElementById('color');
+        const exportPngBtn = document.getElementById('exportPng');
+
+        let shapes = [];
+        let selectedShape = null;
+        let mouseState = {
+            isDown: false,
+            isDragging: false,
+            isResizing: false,
+            resizeCorner: null,
+            offsetX: 0,
+            offsetY: 0,
+            startX: 0,
+            startY: 0
+        };
+        const controlPointSize = 8;
+        const defaultConfig = {
+            width: 120,
+            height: 80,
+            color: '#ff4444',
+            zIndex: 0
+        };
+
+        class Shape {
+            constructor(x, y, width, height, color, type) {
+                this.x = x;
+                this.y = y;
+                this.width = width;
+                this.height = height;
+                this.color = color;
+                this.type = type; // 'rect' OR 'circle'
+                this.zIndex = getMaxZIndex() + 1;
+                this.isSelected = false;
+            }
+
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                if (this.type === 'rect') {
+                    ctx.fillRect(this.x, this.y, this.width, this.height);
+                    if (this.isSelected) {
+                        this.drawSelectionStyle();
+                    }
+                } else if (this.type === 'circle') {
+                    const centerX = this.x + this.width / 2;
+                    const centerY = this.y + this.height / 2;
+                    const radius = Math.min(this.width, this.height) / 2;
+                    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    if (this.isSelected) {
+                        this.drawSelectionStyle();
+                    }
+                }
+            }
+
+            drawSelectionStyle() {
+                ctx.strokeStyle = '#2196F3';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                if (this.type === 'rect') {
+                    ctx.strokeRect(this.x, this.y, this.width, this.height);
+                    this.drawControlPoints();
+                } else if (this.type === 'circle') {
+                    const centerX = this.x + this.width / 2;
+                    const centerY = this.y + this.height / 2;
+                    const radius = Math.min(this.width, this.height) / 2;
+                    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+            }
+
+            drawControlPoints() {
+                ctx.fillStyle = '#2196F3';
+                const tl = { x: this.x - controlPointSize / 2, y: this.y - controlPointSize / 2 };
+                const tr = { x: this.x + this.width - controlPointSize / 2, y: this.y - controlPointSize / 2 };
+                const bl = { x: this.x - controlPointSize / 2, y: this.y + this.height - controlPointSize / 2 };
+                const br = { x: this.x + this.width - controlPointSize / 2, y: this.y + this.height - controlPointSize / 2 };
+
+                [tl, tr, bl, br].forEach(point => {
+                    ctx.fillRect(point.x, point.y, controlPointSize, controlPointSize);
+                });
+            }
+
+            bringToFront() {
+                this.zIndex = getMaxZIndex() + 1;
+                shapes.sort((a, b) => a.zIndex - b.zIndex);
+            }
+        }
+
+        function getMaxZIndex() {
+            if (shapes.length === 0) return 0;
+            return Math.max(...shapes.map(shape => shape.zIndex));
+        }
+
+        function isPointInRect(x, y, rect) {
+            return x >= rect.x && x <= rect.x + rect.width &&
+                   y >= rect.y && y <= rect.y + rect.height;
+        }
+
+        function isPointInCircle(x, y, circle) {
+            const centerX = circle.x + circle.width / 2;
+            const centerY = circle.y + circle.height / 2;
+            const radius = Math.min(circle.width, circle.height) / 2;
+            const dx = x - centerX;
+            const dy = y - centerY;
+            return dx * dx + dy * dy <= radius * radius;
+        }
+
+        function getHoveredControlPoint(x, y, rect) {
+            const tl = { 
+                x: rect.x - controlPointSize / 2, 
+                y: rect.y - controlPointSize / 2,
+                width: controlPointSize,
+                height: controlPointSize,
+                corner: 'tl'
+            };
+            const tr = { 
+                x: rect.x + rect.width - controlPointSize / 2, 
+                y: rect.y - controlPointSize / 2,
+                width: controlPointSize,
+                height: controlPointSize,
+                corner: 'tr'
+            };
+            const bl = { 
+                x: rect.x - controlPointSize / 2, 
+                y: rect.y + rect.height - controlPointSize / 2,
+                width: controlPointSize,
+                height: controlPointSize,
+                corner: 'bl'
+            };
+            const br = { 
+                x: rect.x + rect.width - controlPointSize / 2, 
+                y: rect.y + rect.height - controlPointSize / 2,
+                width: controlPointSize,
+                height: controlPointSize,
+                corner: 'br'
+            };
+
+            for (const point of [tl, tr, bl, br]) {
+                if (isPointInRect(x, y, point)) {
+                    return point.corner;
+                }
+            }
+            return null;
+        }
+
+        function renderCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            shapes.sort((a, b) => a.zIndex - b.zIndex);
+            shapes.forEach(shape => shape.draw());
+        }
+
+        function addShape(type) {
+            const x = 50 + Math.random() * (canvas.width - 200);
+            const y = 50 + Math.random() * (canvas.height - 200);
+            const shape = new Shape(
+                x,
+                y,
+                defaultConfig.width,
+                defaultConfig.height,
+                colorPicker.value,
+                type
+            );
+            shapes.push(shape);
+            renderCanvas();
+        }
+
+        function updateSelectedShapeColor(color) {
+            if (selectedShape) {
+                selectedShape.color = color;
+                renderCanvas();
+            }
+        }
+
+        function exportAsPng() {
+            const dataUrl = canvas.toDataURL('image/png', 1.0);
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = `mini-editor-${new Date().getTime()}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            mouseState.isDown = true;
+            mouseState.startX = e.offsetX;
+            mouseState.startY = e.offsetY;
+
+            let shapeClicked = false;
+            let hoveredControl = null;
+
+            for (let i = shapes.length - 1; i >= 0; i--) {
+                const shape = shapes[i];
+                if (shape.type === 'rect') {
+                    hoveredControl = getHoveredControlPoint(e.offsetX, e.offsetY, shape);
+                    if (hoveredControl) {
+                        shapes.forEach(s => s.isSelected = false);
+                        shape.isSelected = true;
+                        selectedShape = shape;
+                        mouseState.isResizing = true;
+                        mouseState.resizeCorner = hoveredControl;
+                        shapeClicked = true;
+                        break;
+                    }
+                }
+
+                let isInShape = false;
+                if (shape.type === 'rect') {
+                    isInShape = isPointInRect(e.offsetX, e.offsetY, shape);
+                } else if (shape.type === 'circle') {
+                    isInShape = isPointInCircle(e.offsetX, e.offsetY, shape);
+                }
+
+                if (isInShape) {
+                    shapes.forEach(s => s.isSelected = false);
+                    shape.isSelected = true;
+                    selectedShape = shape;
+                    mouseState.offsetX = e.offsetX - shape.x;
+                    mouseState.offsetY = e.offsetY - shape.y;
+                    mouseState.isDragging = true;
+                    shapeClicked = true;
+                    shape.bringToFront();
+                    break;
+                }
+            }
+
+            if (!shapeClicked) {
+                shapes.forEach(s => s.isSelected = false);
+                selectedShape = null;
+                mouseState.isDragging = false;
+                mouseState.isResizing = false;
+            }
+
+            renderCanvas();
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!mouseState.isDown) return;
+
+            if (mouseState.isDragging && selectedShape) {
+                const newX = e.offsetX - mouseState.offsetX;
+                const newY = e.offsetY - mouseState.offsetY;
+                selectedShape.x = Math.max(0, Math.min(newX, canvas.width - selectedShape.width));
+                selectedShape.y = Math.max(0, Math.min(newY, canvas.height - selectedShape.height));
+                renderCanvas();
+            }
+
+            if (mouseState.isResizing && selectedShape && selectedShape.type === 'rect') {
+                const dx = e.offsetX - mouseState.startX;
+                const dy = e.offsetY - mouseState.startY;
+                const originalX = selectedShape.x;
+                const originalY = selectedShape.y;
+                const originalWidth = selectedShape.width;
+                const originalHeight = selectedShape.height;
+
+                switch (mouseState.resizeCorner) {
+                    case 'tl': // 左上角
+                        selectedShape.x = originalX + dx;
+                        selectedShape.y = originalY + dy;
+                        selectedShape.width = originalWidth - dx;
+                        selectedShape.height = originalHeight - dy;
+                        break;
+                    case 'tr': // 右上角
+                        selectedShape.y = originalY + dy;
+                        selectedShape.width = originalWidth + dx;
+                        selectedShape.height = originalHeight - dy;
+                        break;
+                    case 'bl': // 左下角
+                        selectedShape.x = originalX + dx;
+                        selectedShape.width = originalWidth - dx;
+                        selectedShape.height = originalHeight + dy;
+                        break;
+                    case 'br': // 右下角
+                        selectedShape.width = originalWidth + dx;
+                        selectedShape.height = originalHeight + dy;
+                        break;
+                }
+
+                if (selectedShape.width < 20) selectedShape.width = 20;
+                if (selectedShape.height < 20) selectedShape.height = 20;
+                if (selectedShape.x < 0) selectedShape.x = 0;
+                if (selectedShape.y < 0) selectedShape.y = 0;
+
+                mouseState.startX = e.offsetX;
+                mouseState.startY = e.offsetY;
+                renderCanvas();
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            mouseState.isDown = false;
+            mouseState.isDragging = false;
+            mouseState.isResizing = false;
+            mouseState.resizeCorner = null;
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            mouseState.isDown = false;
+            mouseState.isDragging = false;
+            mouseState.isResizing = false;
+            mouseState.resizeCorner = null;
+        });
+
+        addRectBtn.addEventListener('click', () => addShape('rect'));
+        addCircleBtn.addEventListener('click', () => addShape('circle'));
+        colorPicker.addEventListener('input', (e) => updateSelectedShapeColor(e.target.value));
+        exportPngBtn.addEventListener('click', exportAsPng);
+
+        renderCanvas();
+    </script>
+</body>
+</html>
