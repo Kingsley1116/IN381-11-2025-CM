@@ -1,0 +1,248 @@
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+        <link rel="stylesheet" href="./style.css" />
+        <title>Document</title>
+    </head>
+    <body>
+        <!--homePage-->
+        <div class="page homePage">
+            <div class="page_box">
+                <!--Title-->
+                <div class="title">Target Start</div>
+
+                <!--btnStyle-->
+                <div class="home_btn">
+                    <div class="btn edit">Map Editor</div>
+                    <div class="btn inst">Instructions</div>
+                    <div class="btn cont none">Continue</div>
+                    <div class="btn load">Load Map File</div>
+                </div>
+            </div>
+        </div>
+
+        <!--editPage-->
+        <div class="page editPage">
+            <div class="page_box">
+                <!--        levelBox-->
+                <div class="level_box">
+                    <div class="btn level check">Level 1</div>
+                    <div class="btn level">Level 2</div>
+                    <div class="btn level">Level 3</div>
+                </div>
+
+                <!--        toolBox-->
+                <div class="tool_box">
+                    <img
+                        src="https://07-module-d.vercel.app/img/1.png"
+                        class="tool_img"
+                        alt=""
+                    />
+                    <img
+                        src="https://07-module-d.vercel.app/img/2.png"
+                        class="tool_img"
+                        alt=""
+                    />
+                    <img
+                        src="https://07-module-d.vercel.app/img/3.png"
+                        class="tool_img"
+                        alt=""
+                    />
+                    <img
+                        src="https://07-module-d.vercel.app/img/4.png"
+                        class="tool_img"
+                        alt=""
+                    />
+                    <img
+                        src="https://07-module-d.vercel.app/img/4.png"
+                        class="tool_img none"
+                        alt=""
+                    />
+                    <img
+                        src="https://07-module-d.vercel.app/img/6.png"
+                        class="tool_img"
+                        alt=""
+                    />
+                    <img
+                        src="https://07-module-d.vercel.app/img/7.png"
+                        class="tool_img"
+                        alt=""
+                    />
+                    <img
+                        src="https://07-module-d.vercel.app/img/8.png"
+                        class="tool_img"
+                        alt=""
+                    />
+                    <img
+                        src="https://07-module-d.vercel.app/img/9.png"
+                        class="tool_img"
+                        alt=""
+                    />
+                </div>
+
+                <div class="demo_box">
+                    <div class="btn demo not">Play Demo</div>
+                </div>
+
+                <div class="edit_btn">
+                    <div class="btn home">Home</div>
+                    <div class="btn load">Load</div>
+                    <div class="btn export not">Export</div>
+                </div>
+            </div>
+        </div>
+
+        <!--Canvas-->
+        <canvas class="canvas" width="1400" height="700"> </canvas>
+
+        <!--prevPage-->
+        <div class="page instPage">
+            <div class="page_box">
+                <div class="title">Instructions</div>
+
+                <div class="inst_image">
+                    <img
+                        src="https://07-module-d.vercel.app/img/image/1.png"
+                        alt=""
+                    />
+                    <img
+                        src="https://07-module-d.vercel.app/img/image/2.png"
+                        alt=""
+                    />
+                    <img
+                        src="https://07-module-d.vercel.app/img/image/3.png"
+                        alt=""
+                    />
+                </div>
+
+                <div class="inst_text">
+                    “Target
+                    Start”是一款前端游戏，玩家可以通过网络浏览器访问游玩。游戏提供了创意模
+                    式和挑战模式。在创意模式下，玩家可以使用工具箱设计游戏场景。在挑战模式中，玩家可
+                    以挑战自己创建的地图，也可以通过上传地图游玩其他人制作的游戏关卡。
+                </div>
+
+                <div class="inst_btn">
+                    <div class="btn home">Home</div>
+                </div>
+            </div>
+        </div>
+
+        <!--prevPage-->
+        <div class="page prevPage">
+            <div class="page_box">
+                <div class="title">Preview</div>
+
+                <div class="prev_image">
+                    <img
+                        src="https://07-module-d.vercel.app/img/image/1.png"
+                        alt=""
+                    />
+                    <img
+                        src="https://07-module-d.vercel.app/img/image/1.png"
+                        alt=""
+                    />
+                    <img
+                        src="https://07-module-d.vercel.app/img/image/1.png"
+                        alt=""
+                    />
+                </div>
+
+                <div class="prev_btn">
+                    <div class="btn star">Start Game</div>
+                    <div class="btn rank">Rank</div>
+                    <div class="btn edit">Edit</div>
+                    <div class="btn home">Home</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page gamePage">
+            <div class="page_box">
+                <div class="status_box">
+                    <div class="btn">Level <span class="level">1</span></div>
+                    <div class="btn">Hit Point: <span class="hp">3</span></div>
+                    <div class="btn">
+                        Timer : <span class="time">00:00.000</span>
+                    </div>
+                </div>
+
+                <div class="game_btn">
+                    <div class="btn home">Home</div>
+                    <div class="btn pause">Pause</div>
+                </div>
+
+                <div class="page msg_back msg_next">
+                    <div class="msg_box">
+                        <h2>You Win!</h2>
+
+                        <div class="msg_box_s">
+                            <button class="next">Next Level</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page msg_back msg_win">
+                    <div class="msg_box">
+                        <h2>You Win!</h2>
+
+                        <div class="msg_box_s">
+                            <input
+                                type="text"
+                                class="name_input"
+                                placeholder="Your Name"
+                            />
+                            <button class="next">Submit</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page msg_back msg_lose">
+                    <div class="msg_box">
+                        <h2>You Lose!</h2>
+
+                        <div class="msg_box_s">
+                            <button class="next">Retry</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--rankPage-->
+        <div class="page rankPage">
+            <div class="page_box">
+                <div class="title">Rank</div>
+
+                <div class="rank_level_box">
+                    <div class="btn level">Level 1</div>
+                    <div class="btn level">Level 2</div>
+                    <div class="btn level">Level 3</div>
+                </div>
+
+                <table border="1px" class="table_body">
+                    <tr>
+                        <th>Rank</th>
+                        <th>Nick Name</th>
+                        <th>Hit Points</th>
+                        <th>Time</th>
+                    </tr>
+                    <tbody class="rank_body"></tbody>
+                </table>
+
+                <div class="rank_btn">
+                    <div class="btn retry">Retry</div>
+                    <div class="btn home">Home</div>
+                </div>
+            </div>
+        </div>
+
+        <script src="./jquery-v3.7.1.js"></script>
+        <script src="./script/app.js"></script>
+        <script src="./script/player.js"></script>
+        <script src="./script/item.js"></script>
+        <script>
+            new app();
+        </script>
+    </body>
+</html>
