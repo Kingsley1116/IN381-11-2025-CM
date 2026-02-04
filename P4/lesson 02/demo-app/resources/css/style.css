@@ -1,0 +1,40 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+nav {
+    width: 100%;
+    background-color: black;
+    padding: 10px 0;
+}
+
+ul {
+    display: flex;
+    flex-direction: row;
+    list-style: none;
+    justify-content: center;
+}
+
+li {
+    padding: 10px 20px;
+    margin: 0 20px;
+    border-radius: 9999px;
+    transition: 0.15s background-color ease-in-out;
+}
+
+li:hover {
+    background-color: darkgray;
+}
+
+a {
+    color: white;
+    text-decoration: none;
+}
+
+form {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+}
